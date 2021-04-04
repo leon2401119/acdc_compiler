@@ -233,6 +233,85 @@ Expression *parseValue( FILE *source )
     return value;
 }
 
+Expression *parseExpressionTail_muldiv( FILE *source, Expression *lvalue )
+{
+    Token token = scanner(source);
+    Expression *expr;
+
+    int j;
+    switch(token.type){
+        case MulOp:
+            expr = (Expression *)malloc( sizeof(Expression) );
+            (expr->v).type = MulNode;
+            (expr->v).val.op = Mul;
+            expr->leftOperand = lvalue;
+            expr->rightOperand = parseValue(source);
+            return parseExpressionTail_muldiv(source, expr);
+        case DivOp:
+            expr = (Expression *)malloc( sizeof(Expression) );
+            (expr->v).type = DivNode;
+            (expr->v).val.op = Div;
+            expr->leftOperand = lvalue;
+            expr->rightOperand = parseValue(source);
+            return parseExpressionTail_muldiv(source, expr);
+        case PlusOp:
+        case MinusOp:
+        case Alphabet:
+        case PrintOp:
+            for(j=strlen(token.tok)-1;j>=0;j--)
+                ungetc(token.tok[j], source);
+            return lvalue;
+        case EOFsymbol:
+            return lvalue;
+        default:
+            printf("Syntax Error: Expect a numeric value or an identifier %s\n", token.tok);
+            exit(1);
+    }
+}
+
+Expression *parseExpression_muldiv( FILE *source, Expression *lvalue )
+{
+    Expression *head;
+    if(!lvalue){
+        head = (Expression *)malloc( sizeof(Expression) );
+        head = parseValue(source);
+        return parseExpressionTail_muldiv(source, head);
+    }
+
+    Token token = scanner(source);
+    Expression *expr;
+
+    int j;
+    switch(token.type){
+        case MulOp:
+            expr = (Expression *)malloc( sizeof(Expression) );
+            (expr->v).type = MulNode;
+            (expr->v).val.op = Mul;
+            expr->leftOperand = lvalue;
+            expr->rightOperand = parseValue(source);
+            return parseExpressionTail_muldiv(source, expr);
+        case DivOp:
+            expr = (Expression *)malloc( sizeof(Expression) );
+            (expr->v).type = DivNode;
+            (expr->v).val.op = Div;
+            expr->leftOperand = lvalue;
+            expr->rightOperand = parseValue(source);
+            return parseExpressionTail_muldiv(source, expr);
+        case PlusOp:
+        case MinusOp:
+        case Alphabet:
+        case PrintOp:
+            for(j=strlen(token.tok)-1;j>=0;j--)
+                ungetc(token.tok[j], source);
+            return NULL;
+        case EOFsymbol:
+            return NULL;
+        default:
+            printf("Syntax Error: Expect a numeric value or an identifier %s\n", token.tok);
+            exit(1);
+    }
+}
+
 Expression *parseExpressionTail_plusminus( FILE *source, Expression *lvalue )
 {
     Token token = scanner(source);
@@ -245,14 +324,14 @@ Expression *parseExpressionTail_plusminus( FILE *source, Expression *lvalue )
             (expr->v).type = PlusNode;
             (expr->v).val.op = Plus;
             expr->leftOperand = lvalue;
-            expr->rightOperand = parseValue(source);
+            expr->rightOperand = parseExpression_muldiv(source, NULL);
             return parseExpressionTail_plusminus(source, expr);
         case MinusOp:
             expr = (Expression *)malloc( sizeof(Expression) );
             (expr->v).type = MinusNode;
             (expr->v).val.op = Minus;
             expr->leftOperand = lvalue;
-            expr->rightOperand = parseValue(source);
+            expr->rightOperand = parseExpression_muldiv(source, NULL);
             return parseExpressionTail_plusminus(source, expr);
         case MulOp:
         case DivOp:
@@ -275,7 +354,7 @@ Expression *parseExpression_plusminus( FILE *source, Expression *lvalue )
     Expression *head;
     if(!lvalue){
         head = (Expression *)malloc( sizeof(Expression) );
-        head = parseValue(source);
+        head = parseExpression_muldiv(source, NULL);
         return parseExpressionTail_plusminus(source, head);
     }
 
@@ -289,93 +368,17 @@ Expression *parseExpression_plusminus( FILE *source, Expression *lvalue )
             (expr->v).type = PlusNode;
             (expr->v).val.op = Plus;
             expr->leftOperand = lvalue;
-            expr->rightOperand = parseValue(source);
+            expr->rightOperand = parseExpression_muldiv(source, NULL);
             return parseExpressionTail_plusminus(source, expr);
         case MinusOp:
             expr = (Expression *)malloc( sizeof(Expression) );
             (expr->v).type = MinusNode;
             (expr->v).val.op = Minus;
             expr->leftOperand = lvalue;
-            expr->rightOperand = parseValue(source);
+            expr->rightOperand = parseExpression_muldiv(source, NULL);
             return parseExpressionTail_plusminus(source, expr);
         case MulOp:
         case DivOp:
-        case Alphabet:
-        case PrintOp:
-            for(j=strlen(token.tok)-1;j>=0;j--)
-                ungetc(token.tok[j], source);
-            return NULL;
-        case EOFsymbol:
-            return NULL;
-        default:
-            printf("Syntax Error: Expect a numeric value or an identifier %s\n", token.tok);
-            exit(1);
-    }
-}
-
-
-Expression *parseExpressionTail_muldiv( FILE *source, Expression *lvalue )
-{
-    Token token = scanner(source);
-    Expression *expr;
-
-    int j;
-    switch(token.type){
-        case MulOp:
-            expr = (Expression *)malloc( sizeof(Expression) );
-            (expr->v).type = MulNode;
-            (expr->v).val.op = Mul;
-            expr->leftOperand = lvalue;
-            expr->rightOperand = parseExpression_plusminus(source,NULL);
-            return parseExpressionTail_muldiv(source, expr);
-        case DivOp:
-            expr = (Expression *)malloc( sizeof(Expression) );
-            (expr->v).type = DivNode;
-            (expr->v).val.op = Div;
-            expr->leftOperand = lvalue;
-            expr->rightOperand = parseExpression_plusminus(source,NULL);
-            return parseExpressionTail_muldiv(source, expr);
-        case Alphabet:
-        case PrintOp:
-            for(j=strlen(token.tok)-1;j>=0;j--)
-                ungetc(token.tok[j], source);
-            return lvalue;
-        case EOFsymbol:
-            return lvalue;
-        default:
-            printf("Syntax Error: Expect a numeric value or an identifier %s\n", token.tok);
-            exit(1);
-    }
-}
-
-Expression *parseExpression_muldiv( FILE *source, Expression *lvalue )
-{
-    Expression *head;
-    if(!lvalue){
-        head = (Expression *)malloc( sizeof(Expression) );
-        head = parseExpression_plusminus(source, NULL);
-        return parseExpressionTail_muldiv(source, head);
-    }
-
-    Token token = scanner(source);
-    Expression *expr;
-
-    int j;
-    switch(token.type){
-        case MulOp:
-            expr = (Expression *)malloc( sizeof(Expression) );
-            (expr->v).type = MulNode;
-            (expr->v).val.op = Mul;
-            expr->leftOperand = lvalue;
-            expr->rightOperand = parseExpression_plusminus(source,lvalue);
-            return parseExpressionTail_muldiv(source, expr);
-        case DivOp:
-            expr = (Expression *)malloc( sizeof(Expression) );
-            (expr->v).type = DivNode;
-            (expr->v).val.op = Div;
-            expr->leftOperand = lvalue;
-            expr->rightOperand = parseExpression_plusminus(source,lvalue);
-            return parseExpressionTail_muldiv(source, expr);
         case Alphabet:
         case PrintOp:
             for(j=strlen(token.tok)-1;j>=0;j--)
@@ -398,8 +401,8 @@ Statement parseStatement( FILE *source, Token token )
         case Alphabet:
             next_token = scanner(source);
             if(next_token.type == AssignmentOp){
-                value = parseExpression_muldiv(source, NULL);
-                expr = parseExpression_muldiv(source, value);
+                value = parseExpression_plusminus(source, NULL);
+                expr = parseExpression_plusminus(source, value);
                 return makeAssignmentNode(token.tok, value, expr);
             }
             else{
@@ -636,6 +639,52 @@ DataType lookup_table( SymbolTable *table, char* c )
     exit(1);
 }
 
+void ConstantFolding(Expression *expr){
+    if(expr->leftOperand)
+        ConstantFolding(expr->leftOperand);
+    if(expr->rightOperand)
+        ConstantFolding(expr->rightOperand);
+    if(!expr->leftOperand && !expr->rightOperand)
+        return;
+
+    if(expr->leftOperand->v.type == IntConst && expr->rightOperand->v.type == IntConst){
+        expr->v.val.ivalue = expr->leftOperand->v.val.ivalue + expr->rightOperand->v.val.ivalue;
+        expr->v.type = IntConst;
+        free(expr->leftOperand);
+        free(expr->rightOperand);
+        expr->leftOperand = NULL;
+        expr->rightOperand = NULL;
+        expr->type = Int;
+    }
+    else if(expr->leftOperand->v.type == FloatConst && expr->rightOperand->v.type == FloatConst){
+        expr->v.val.fvalue = expr->leftOperand->v.val.fvalue + expr->rightOperand->v.val.fvalue;
+        expr->v.type = FloatConst;
+        free(expr->leftOperand);
+        free(expr->rightOperand);
+        expr->leftOperand = NULL;
+        expr->rightOperand = NULL;
+        expr->type = Float;
+    }
+    else if(expr->leftOperand->v.type == IntConst && expr->rightOperand->v.type == FloatConst){
+        expr->v.val.fvalue = expr->leftOperand->v.val.ivalue + expr->rightOperand->v.val.fvalue;
+        expr->v.type = FloatConst;
+        free(expr->leftOperand);
+        free(expr->rightOperand);
+        expr->leftOperand = NULL;
+        expr->rightOperand = NULL;
+        expr->type = Float;
+    }
+    else if(expr->leftOperand->v.type == FloatConst && expr->rightOperand->v.type == IntConst){
+        expr->v.val.fvalue = expr->leftOperand->v.val.fvalue + expr->rightOperand->v.val.ivalue;
+        expr->v.type = FloatConst;
+        free(expr->leftOperand);
+        free(expr->rightOperand);
+        expr->leftOperand = NULL;
+        expr->rightOperand = NULL;
+        expr->type = Float;
+    }
+}
+
 void checkexpression( Expression * expr, SymbolTable * table )
 {
     char* c;
@@ -678,6 +727,7 @@ void checkstmt( Statement *stmt, SymbolTable * table )
     if(stmt->type == Assignment){
         AssignmentStatement assign = stmt->stmt.assign;
         printf("assignment : %s \n",assign.id);
+        ConstantFolding(assign.expr);
         checkexpression(assign.expr, table);
         stmt->stmt.assign.type = lookup_table(table, assign.id);
         if (assign.expr->type == Float && stmt->stmt.assign.type == Int) {
