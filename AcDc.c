@@ -39,8 +39,8 @@ int main( int argc, char *argv[] )
 }
 
 
-/********************************************* 
-  Scanning 
+/*********************************************
+  Scanning
  *********************************************/
 Token getNumericToken( FILE *source, char c )
 {
@@ -97,7 +97,7 @@ Token scanner( FILE *source )
         if((c<='z'&&c>='a'&&c!='f'&&c!='i'&&c!='p')||(c<='Z'&&c>='A')||c=='_'){
             while(i<64){
                 c=fgetc(source);
-                if(c==EOF || c==' ' || c=='\n'){
+                if(!(c<='z'&&c>='a'&&c!='f'&&c!='i'&&c!='p'||(c<='Z'&&c>='A')||c=='_'||isdigit(c))){
                     ungetc(c, source);
                     break;
                 }
@@ -186,6 +186,7 @@ Declarations *parseDeclarations( FILE *source )
     Token token = scanner(source);
     Declaration decl;
     Declarations *decls;
+    int j;
     switch(token.type){
         case FloatDeclaration:
         case IntegerDeclaration:
@@ -194,7 +195,8 @@ Declarations *parseDeclarations( FILE *source )
             return makeDeclarationTree( decl, decls );
         case PrintOp:
         case Alphabet:
-            ungetc(token.tok[0], source);
+            for(j=strlen(token.tok)-1;j>=0;j--)
+                ungetc(token.tok[j], source);
             return NULL;
         case EOFsymbol:
             return NULL;
@@ -538,6 +540,7 @@ void add_table( SymbolTable *table, char* c, DataType t )
     if(!table->entry[index]){
         table->entry[index] = (RecordList*)malloc(sizeof(RecordList));
         table->entry[index]->type = t;
+        table->entry[index]->name = (char*)malloc(sizeof(char)*strlen(c)+1);
         strcpy(table->entry[index]->name,c);
         table->entry[index]->next = NULL;
     }
@@ -552,6 +555,7 @@ void add_table( SymbolTable *table, char* c, DataType t )
         }
         table->entry[index] = (RecordList*)malloc(sizeof(RecordList));
         table->entry[index]->type = t;
+        table->entry[index]->name = (char*)malloc(sizeof(char)*strlen(c)+1);
         strcpy(table->entry[index]->name,c);
         table->entry[index]->next = NULL;
     }
