@@ -647,42 +647,82 @@ void ConstantFolding(Expression *expr){
     if(!expr->leftOperand && !expr->rightOperand)
         return;
 
+    // there's no convert node (that has no right child) possible because
+    // constantfolding is called before checkexpression
     if(expr->leftOperand->v.type == IntConst && expr->rightOperand->v.type == IntConst){
-        expr->v.val.ivalue = expr->leftOperand->v.val.ivalue + expr->rightOperand->v.val.ivalue;
+        switch(expr->v.val.op){
+            case Plus:
+                expr->v.val.ivalue = expr->leftOperand->v.val.ivalue + expr->rightOperand->v.val.ivalue;
+                break;
+            case Minus:
+                expr->v.val.ivalue = expr->leftOperand->v.val.ivalue - expr->rightOperand->v.val.ivalue;
+                break;
+            case Mul:
+                expr->v.val.ivalue = expr->leftOperand->v.val.ivalue * expr->rightOperand->v.val.ivalue;
+                break;
+            case Div:
+                expr->v.val.ivalue = expr->leftOperand->v.val.ivalue / expr->rightOperand->v.val.ivalue;
+        }
         expr->v.type = IntConst;
-        free(expr->leftOperand);
-        free(expr->rightOperand);
-        expr->leftOperand = NULL;
-        expr->rightOperand = NULL;
         expr->type = Int;
     }
     else if(expr->leftOperand->v.type == FloatConst && expr->rightOperand->v.type == FloatConst){
-        expr->v.val.fvalue = expr->leftOperand->v.val.fvalue + expr->rightOperand->v.val.fvalue;
+        switch(expr->v.val.op){
+            case Plus:
+                expr->v.val.fvalue = expr->leftOperand->v.val.fvalue + expr->rightOperand->v.val.fvalue;
+                break;
+            case Minus:
+                expr->v.val.fvalue = expr->leftOperand->v.val.fvalue - expr->rightOperand->v.val.fvalue;
+                break;
+            case Mul:
+                expr->v.val.fvalue = expr->leftOperand->v.val.fvalue * expr->rightOperand->v.val.fvalue;
+                break;
+            case Div:
+                expr->v.val.fvalue = expr->leftOperand->v.val.fvalue / expr->rightOperand->v.val.fvalue;
+        }
         expr->v.type = FloatConst;
-        free(expr->leftOperand);
-        free(expr->rightOperand);
-        expr->leftOperand = NULL;
-        expr->rightOperand = NULL;
         expr->type = Float;
     }
     else if(expr->leftOperand->v.type == IntConst && expr->rightOperand->v.type == FloatConst){
-        expr->v.val.fvalue = expr->leftOperand->v.val.ivalue + expr->rightOperand->v.val.fvalue;
+        switch(expr->v.val.op){
+            case Plus:
+                expr->v.val.fvalue = expr->leftOperand->v.val.ivalue + expr->rightOperand->v.val.fvalue;
+                break;
+            case Minus:
+                expr->v.val.fvalue = expr->leftOperand->v.val.ivalue - expr->rightOperand->v.val.fvalue;
+                break;
+            case Mul:
+                expr->v.val.fvalue = expr->leftOperand->v.val.ivalue * expr->rightOperand->v.val.fvalue;
+                break;
+            case Div:
+                expr->v.val.fvalue = expr->leftOperand->v.val.ivalue / expr->rightOperand->v.val.fvalue;
+        }
         expr->v.type = FloatConst;
-        free(expr->leftOperand);
-        free(expr->rightOperand);
-        expr->leftOperand = NULL;
-        expr->rightOperand = NULL;
         expr->type = Float;
     }
     else if(expr->leftOperand->v.type == FloatConst && expr->rightOperand->v.type == IntConst){
-        expr->v.val.fvalue = expr->leftOperand->v.val.fvalue + expr->rightOperand->v.val.ivalue;
+        switch(expr->v.val.op){
+            case Plus:
+                expr->v.val.fvalue = expr->leftOperand->v.val.fvalue + expr->rightOperand->v.val.ivalue;
+                break;
+            case Minus:
+                expr->v.val.fvalue = expr->leftOperand->v.val.fvalue - expr->rightOperand->v.val.ivalue;
+                break;
+            case Mul:
+                expr->v.val.fvalue = expr->leftOperand->v.val.fvalue * expr->rightOperand->v.val.ivalue;
+                break;
+            case Div:
+                expr->v.val.fvalue = expr->leftOperand->v.val.fvalue / expr->rightOperand->v.val.ivalue;
+        }
         expr->v.type = FloatConst;
-        free(expr->leftOperand);
-        free(expr->rightOperand);
-        expr->leftOperand = NULL;
-        expr->rightOperand = NULL;
         expr->type = Float;
     }
+    else
+        return;
+    free(expr->leftOperand);
+    free(expr->rightOperand);
+    expr->leftOperand = NULL;
+    expr->rightOperand = NULL;
 }
 
 void checkexpression( Expression * expr, SymbolTable * table )
