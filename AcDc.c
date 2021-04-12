@@ -536,9 +536,19 @@ void InitializeTable( SymbolTable *table )
         table->entry[i] = NULL;
 }
 
+int hash(char* str){
+    int val = 0, i = 0;
+    while(str[i]){
+        val += (str[i]*str[i]);
+        i++;
+    }
+    return val%26;
+}
+
 void add_table( SymbolTable *table, char* c, DataType t )
 {
-    int index = (int)(c[0] - 'a');
+    //int index = (int)(c[0] - 'a');
+    int index = hash(c);
 
     if(!table->entry[index]){
         table->entry[index] = (RecordList*)malloc(sizeof(RecordList));
@@ -594,6 +604,7 @@ void convertType( Expression * old, DataType type )
     }
     if(old->type == Int && type == Float){
         Expression *tmp = (Expression *)malloc( sizeof(Expression) );
+        printf("%d\n",old->v.type);
         if(old->v.type == Identifier)
             printf("convert to float %s \n",old->v.val.id);
         else
@@ -626,7 +637,8 @@ DataType generalize( Expression *left, Expression *right )
 DataType lookup_table( SymbolTable *table, char* c )
 {
     // TODO : flexible look-up
-    int id = c[0]-'a';
+    // int id = c[0]-'a';
+    int id = hash(c);
     RecordList* cur = table->entry[id];
     while(cur){
         if(!strcmp(cur->name,c))
